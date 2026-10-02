@@ -42,7 +42,15 @@ namespace AriaBoost.UI
             };
             TaskScheduler.UnobservedTaskException += (_, e) => { LogError(e.Exception); e.SetObserved(); };
 
-            var window = new MainWindow(new AppState());
+            var state = new AppState();
+            // Önceki oturum çöktüyse durdurulmuş kalan Wi-Fi taramasını geri aç; kapanırken de aç.
+            try { WifiScan.RestoreAll(state.Store); } catch (Exception ex) { LogError(ex); }
+            app.Exit += (_, __) =>
+            {
+                try { WifiScan.RestoreAll(state.Store); } catch (Exception ex) { LogError(ex); }
+            };
+
+            var window = new MainWindow(state);
             if (screenshotDir != null)
             {
                 window.Loaded += async (_, __) =>

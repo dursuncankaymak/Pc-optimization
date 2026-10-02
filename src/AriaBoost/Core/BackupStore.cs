@@ -70,6 +70,11 @@ namespace AriaBoost.Core
             }
         }
 
+        public IReadOnlyCollection<string> KeysOf(string tweakId)
+        {
+            lock (gate) return data.TryGetValue(tweakId, out var d) ? new List<string>(d.Keys) : new List<string>();
+        }
+
         public BackupEntry Get(string tweakId, string key)
         {
             lock (gate) return data.TryGetValue(tweakId, out var d) && d.TryGetValue(key, out var e) ? e : null;

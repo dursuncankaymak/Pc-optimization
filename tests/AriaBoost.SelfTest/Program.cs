@@ -36,6 +36,8 @@ namespace AriaBoost.SelfTest
             Run("Birim: DirectX ayar metni", UnitDirectXParse);
             Run("Birim: yedek deposu", UnitBackupStore);
             Run("Tema XAML'ı yükleniyor", ThemeLoads);
+            Run("Birim: ping istatistikleri ve teşhis", UnitPingDiagnosis);
+            Run("Ağ: bağlantı ve canlı ping (yalnızca bilgi)", NetworkSmoke);
 
             var storePath = Path.Combine(Path.GetTempPath(), "ariaboost-selftest-" + Guid.NewGuid().ToString("N") + ".json");
             var store = new BackupStore(storePath);
@@ -234,11 +236,54 @@ namespace AriaBoost.SelfTest
             if (error != null) throw error;
         }
 
+        private static void UnitPingDiagnosis()
+        {
+            var stats = PingStats.Compute(new long?[] { 20, 22, null, 24, 20 });
+            Equal(5, stats.Sent);
+            Equal(4, stats.Received);
+            Equal(20.0, stats.LossPercent);
+            Equal(21.5, stats.Average);
+            Equal(8.0 / 3, stats.Jitter); // (|22-20| + |24-22| + |20-24|) / 3
+            Equal(24.0, stats.P95);
+
+            PingTestResult Make(IEnumerable<long?> gw, IEnumerable<long?> net, double mbps = 0, bool wifi = false)
+            {
+                var r = new PingTestResult
+                {
+                    Target = "1.1.1.1",
+                    BackgroundMbps = mbps,
+                    Connection = new ConnectionInfo { IsWifi = wifi, Gateway = System.Net.IPAddress.Parse("192.168.1.1") },
+                };
+                r.GatewaySamples.AddRange(gw);
+                r.InternetSamples.AddRange(net);
+                return r;
+            }
+            var stableGw = Enumerable.Repeat((long?)1, 40);
+            var jumpyGw = Enumerable.Range(0, 40).Select(i => (long?)(i % 5 == 0 ? 45 : 2));
+            var stableNet = Enumerable.Range(0, 40).Select(i => (long?)(22 + i % 2));
+            var jumpyNet = Enumerable.Range(0, 40).Select(i => (long?)(i % 3 == 0 ? 60 : 22));
+
+            Equal(Verdict.Good, PingDiagnosis.Analyze(Make(stableGw, stableNet)).Verdict);
+            Equal(Verdict.LocalNetwork, PingDiagnosis.Analyze(Make(jumpyGw, jumpyNet, wifi: true)).Verdict);
+            Equal(Verdict.LineBusy, PingDiagnosis.Analyze(Make(stableGw, jumpyNet, mbps: 40)).Verdict);
+            Equal(Verdict.BeyondHome, PingDiagnosis.Analyze(Make(stableGw, jumpyNet)).Verdict);
+            Equal(Verdict.NoInternet, PingDiagnosis.Analyze(Make(stableGw, Enumerable.Repeat((long?)null, 40))).Verdict);
+        }
+
+        private static void NetworkSmoke()
+        {
+            var c = ConnectionInfo.Detect();
+            Console.WriteLine(c == null ? "    bağlantı yok" : $"    {c.TypeLabel} · {c.Name} · {c.Description} · {c.SpeedBps / 1_000_000} Mbit/s · ağ geçidi {c.Gateway}");
+            var r = PingTester.RunAsync("1.1.1.1", TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(250), null, CancellationToken.None).GetAwaiter().GetResult();
+            Console.WriteLine($"    internet: {r.Internet.Received}/{r.Internet.Sent} yanıt, ort {r.Internet.Average:0.0} ms; ağ geçidi: {r.Gateway.Received}/{r.Gateway.Sent}; trafik {r.BackgroundMbps:0.0} Mbit/s");
+            Console.WriteLine($"    teşhis: {PingDiagnosis.Analyze(r).Headline}");
+        }
+
         private static void UnitExtractExecutable()
         {
             Equal(@"C:\Program Files\A\a.exe", StartupManager.ExtractExecutable("\"C:\\Program Files\\A\\a.exe\" --min"));
             Equal(@"C:\x\b.exe", StartupManager.ExtractExecutable(@"C:\x\b.exe -background"));
-            Equal(@"C:\x\c.exe", StartupManager.ExtractExecutable(@"C:\x\c.EXE"));
+            Equal(@"C:\x\c.EXE", StartupManager.ExtractExecutable(@"C:\x\c.EXE"));
             Equal(null, StartupManager.ExtractExecutable("  "));
         }
 

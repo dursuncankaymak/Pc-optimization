@@ -149,6 +149,16 @@ namespace AriaBoost.Core
                 },
 
                 // ---------------- Ağ ----------------
+                new NetworkAdapterPowerTweak
+                {
+                    Id = "nic-power-saving",
+                    Category = Categories.Network,
+                    Title = "Ağ kartı güç tasarrufunu kapat",
+                    Description = "Ağ kartının \"Enerji Verimli Ethernet\" / \"Green Ethernet\" gibi tasarruf özelliklerini ve Windows'un kartı uyutmasını kapatır. Bu özellikler hat boşken kartı uyutur; uyanırken ping sıçramalarına, bazı kartlarda (özellikle Realtek) kopmalara yol açabilir. Yalnızca kartının desteklediği ayarlar değiştirilir.",
+                    Impact = Impact.Medium,
+                    Recommended = true,
+                    RequiresRestart = true,
+                },
                 new RegistryTweak
                 {
                     Id = "delivery-optimization",

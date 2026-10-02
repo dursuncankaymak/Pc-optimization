@@ -12,5 +12,6 @@ namespace AriaBoost.UI
         public const string Info = "";
         public const string Check = "";
         public const string Refresh = "";
+        public const string Wifi = "\uE701";
     }
 }

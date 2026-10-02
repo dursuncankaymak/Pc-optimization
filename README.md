@@ -29,9 +29,22 @@ Oyuncular için **Windows 10 ve Windows 11** optimizasyon aracı. Tek bir küç�
 | Saydamlık efektlerini kapat | Zayıf ekran kartlarında masaüstünün GPU kullanımını azaltır | 10 / 11 |
 | Fare ivmesini kapat | "İşaretçi hassasiyetini artır" kapanır; nişan tutarlı olur | 10 / 11 |
 | Yapışkan Tuşlar kısayolunu kapat | 5×Shift ile çıkıp oyunu masaüstüne atan pencere çıkmaz | 10 / 11 |
+| Ağ kartı güç tasarrufunu kapat | Enerji Verimli Ethernet / Green Ethernet'i kapatır; uyanma gecikmesi kaynaklı ping sıçramalarını önler | 10 / 11 |
 | Güncellemeleri başka PC'lere yüklemeyi kapat | Teslim İyileştirme'nin oyun sırasında yükleme hızını yemesini engeller | 10 / 11 |
 
 Dizüstü bilgisayarlarda Nihai Performans planı önerilenlere dahil edilmez (pil süresini kısaltır), ama istenirse açılabilir.
+
+### Ping
+
+"Tek tuşla ping düzelten" programların çoğu ya hiçbir şey yapmaz ya da (ExitLag gibi) trafiği kendi sunucuları üzerinden yönlendiren ücretli bir hizmettir. Aria Boost önce **sorunun nerede olduğunu ölçer**: 20 saniye boyunca modeme ve internete aynı anda ping atar, grafiği çizer ve sonucu yorumlar:
+
+| Teşhis | Anlamı | Ne yapılır |
+|---|---|---|
+| Sorun evdeki ağda | Modeme bile ping oynak | Wi-Fi yerine kablo, 5 GHz, Wi-Fi taramasını durdurma, ağ kartı güç tasarrufunu kapatma |
+| Hat dolu | Bu bilgisayar test sırasında yoğun veri aktarıyor | İndirmeleri durdur / sınırla (Steam, torrent vb. açıksa listelenir) |
+| Sorun evin dışında | Modem sabit, internet oynak | Evdeki diğer cihazlar, modemde QoS/SQM, servis sağlayıcı |
+
+Wi-Fi'da **"Oyun sırasında Wi-Fi taramasını durdur"** ayarı, Windows'un dakikada bir yaptığı ve ping sıçratan arka plan ağ taramasını durdurur. Bağlantı koparsa Windows kendiliğinden yeniden bağlanamayacağı için yalnızca uygulama açıkken etkindir; uygulama kapanınca (ya da çökmüşse bir sonraki açılışta) otomatik geri açılır.
 
 ### Başlangıç
 
@@ -54,9 +67,13 @@ Geçici dosyalar, Windows geçici dosyaları, hata raporları ve Geri Dönüşü
 
 ## Ekran görüntüleri
 
-| Optimizasyonlar | Başlangıç | Temizlik |
-|---|---|---|
-| ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/tweaks.png) | ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/startup.png) | ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/cleaner.png) |
+| Optimizasyonlar | Ping |
+|---|---|
+| ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/tweaks.png) | ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/ping.png) |
+
+| Başlangıç | Temizlik |
+|---|---|
+| ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/startup.png) | ![](https://raw.githubusercontent.com/dursuncankaymak/Pc-optimization/screenshots/cleaner.png) |
 
 (Ekran görüntüleri her sürümde CI tarafından otomatik çekilir.)
 
@@ -75,6 +92,7 @@ src/AriaBoost/
 │   ├── TweakCatalog.cs   # Tüm optimizasyonların listesi
 │   ├── RegistryTweak.cs  # Kayıt defteri tabanlı optimizasyon + yedekleme
 │   ├── PowerPlans.cs     # Güç planı (powrprof API)
+│   ├── NetworkDiagnostics.cs # Ping testi ve teşhis
 │   ├── StartupManager.cs # Görev Yöneticisi ile uyumlu başlangıç yönetimi
 │   └── Cleaner.cs        # Güvenli disk temizliği
 └── UI/                   # WPF arayüzü

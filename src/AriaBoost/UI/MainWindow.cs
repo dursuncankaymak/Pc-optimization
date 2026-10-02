@@ -13,7 +13,7 @@ namespace AriaBoost.UI
 {
     internal sealed class MainWindow : Window
     {
-        public static readonly string[] PageIds = { "overview", "tweaks", "startup", "cleaner" };
+        public static readonly string[] PageIds = { "overview", "tweaks", "ping", "startup", "cleaner" };
 
         private readonly AppState state;
         private readonly Dictionary<string, RadioButton> navButtons = new Dictionary<string, RadioButton>();
@@ -79,6 +79,7 @@ namespace AriaBoost.UI
 
             AddNav(sidebar, "overview", Glyphs.Home, "Genel Bakış");
             AddNav(sidebar, "tweaks", Glyphs.Bolt, "Optimizasyonlar");
+            AddNav(sidebar, "ping", Glyphs.Wifi, "Ping");
             AddNav(sidebar, "startup", Glyphs.Play, "Başlangıç");
             AddNav(sidebar, "cleaner", Glyphs.Delete, "Temizlik");
 
@@ -140,6 +141,7 @@ namespace AriaBoost.UI
             {
                 case "overview": return new OverviewPage(state, this);
                 case "tweaks": return new TweaksPage(state, this);
+                case "ping": return new PingPage(state, this);
                 case "startup": return new StartupPage(this);
                 case "cleaner": return new CleanerPage(this);
                 default: throw new ArgumentOutOfRangeException(nameof(id));
