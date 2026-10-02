@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
@@ -20,6 +21,9 @@ namespace AriaBoost.UI
             }
 
             var app = new Application { ShutdownMode = ShutdownMode.OnMainWindowClose };
+            // Pencere, Dispatcher döngüsü başlamadan (app.Run'dan önce) kurulur; bu sırada başlayan
+            // async işlemlerin devamı da arayüz iş parçacığına dönsün diye bağlam baştan kurulur.
+            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(app.Dispatcher));
             using (var s = typeof(App).Assembly.GetManifestResourceStream("AriaBoost.Theme.xaml"))
             {
                 app.Resources.MergedDictionaries.Add((ResourceDictionary)XamlReader.Load(s));

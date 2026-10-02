@@ -38,8 +38,9 @@ jobs:
         run: |
           $p = Start-Process -FilePath src/AriaBoost/bin/Release/net472/AriaBoost.exe -ArgumentList '--screenshot', "$pwd\shots" -Wait -PassThru
           $log = "$env:LOCALAPPDATA\AriaBoost\error.log"
-          if (Test-Path $log) { Get-Content $log }
           if ($p.ExitCode -ne 0) { Write-Error "Ekran görüntüsü modu $($p.ExitCode) koduyla çıktı"; exit 1 }
+          # Arka planda yakalanan hatalar da (error.log) derlemeyi başarısız sayar.
+          if (Test-Path $log) { Get-Content $log; Write-Error "Uygulama hata kaydı oluşturdu"; exit 1 }
           Get-ChildItem shots
 
       - name: Ekran görüntülerini 'screenshots' dalına yükle
