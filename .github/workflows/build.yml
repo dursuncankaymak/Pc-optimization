@@ -1,0 +1,80 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      APP_VERSION: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Derle
+        run: |
+          dotnet build src/AriaBoost/AriaBoost.csproj -c Release -p:Version=$env:APP_VERSION
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          dotnet build tests/AriaBoost.SelfTest/AriaBoost.SelfTest.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      # Her optimizasyon gerçek Windows'ta uygulanır, doğrulanır ve geri alınır;
+      # sistemin bit bit ilk hâline döndüğü kontrol edilir.
+      - name: Uygula / geri al testleri (gerçek Windows)
+        run: |
+          & tests/AriaBoost.SelfTest/bin/Release/net472/AriaBoost.SelfTest.exe
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Ekran görüntüleri
+        run: |
+          $p = Start-Process -FilePath src/AriaBoost/bin/Release/net472/AriaBoost.exe -ArgumentList '--screenshot', "$pwd\shots" -Wait -PassThru
+          $log = "$env:LOCALAPPDATA\AriaBoost\error.log"
+          if (Test-Path $log) { Get-Content $log }
+          if ($p.ExitCode -ne 0) { Write-Error "Ekran görüntüsü modu $($p.ExitCode) koduyla çıktı"; exit 1 }
+          Get-ChildItem shots
+
+      - name: Ekran görüntülerini 'screenshots' dalına yükle
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd shots
+          git init -q -b screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -q -m "Ekran görüntüleri: ${{ github.sha }}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" screenshots
+
+      - name: Exe'yi hazırla
+        run: Copy-Item src/AriaBoost/bin/Release/net472/AriaBoost.exe Aria-Boost.exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aria-Boost-${{ env.APP_VERSION }}
+          path: Aria-Boost.exe
+
+      - name: Releases'a yayınla
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Aria Boost v${{ env.APP_VERSION }}
+          target_commitish: ${{ github.sha }}
+          files: Aria-Boost.exe
+          body: |
+            **Aria-Boost.exe** dosyasını indirip çalıştır; kurulum gerekmez.
+
+            - Windows 10 (1809 ve üstü) ve Windows 11 (24H2, 25H2, 26H2 dahil) desteklenir.
+            - Ek bir program (.NET vb.) kurmana gerek yok; Windows'ta hazır gelir.
+            - Yönetici izni ister (güç planı ve sistem ayarları için).
+            - İlk açılışta Windows SmartScreen "tanınmayan uygulama" diyebilir: *Ek bilgi → Yine de çalıştır*.
+
+            Bu sürümdeki her optimizasyon GitHub'ın Windows sunucusunda otomatik olarak uygulanıp geri alınarak test edildi.

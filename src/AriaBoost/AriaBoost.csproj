@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    .NET Framework 4.7.2: Windows 10 (1809+) ve Windows 11'de hazır gelir,
+    kullanıcının ek bir çalışma zamanı kurması gerekmez; çıktı tek bir küçük exe'dir.
+    WPF, WindowsDesktop SDK yerine doğrudan referanslarla kullanılır; böylece proje
+    Linux'ta da derlenebilir. Arayüz XAML'ı (UI/Theme.xaml) çalışma anında yüklenir.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>AriaBoost</AssemblyName>
+    <RootNamespace>AriaBoost</RootNamespace>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Product>Aria Boost</Product>
+    <Company>Aria</Company>
+    <Description>Oyuncular için Windows 10/11 optimizasyon aracı</Description>
+    <Copyright>Aria</Copyright>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\Theme.xaml" LogicalName="AriaBoost.Theme.xaml" />
+    <EmbeddedResource Include="Assets\icon.ico" LogicalName="AriaBoost.icon.ico" />
+  </ItemGroup>
+</Project>
